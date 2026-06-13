@@ -1,0 +1,48 @@
+name: Auto PR to develop
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'hotfix/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check if PR already exists
+        id: check_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+
+          EXISTING_PR=$(gh pr list \
+            --base develop \
+            --head "$BRANCH_NAME" \
+            --state open \
+            --json number \
+            --jq 'length')
+
+          echo "existing_pr_count=$EXISTING_PR" >> "$GITHUB_OUTPUT"
+
+      - name: Create PR to develop
+        if: steps.check_pr.outputs.existing_pr_count == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+
+          gh pr create \
+            --base develop \
+            --head "$BRANCH_NAME" \
+            --title "Merge $BRANCH_NAME into develop" \
+            --body "PR criado automaticamente a partir de push na branch \`$BRANCH_NAME\`."

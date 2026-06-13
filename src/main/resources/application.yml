@@ -1,0 +1,23 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:sqlite:sales-service.db}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.sqlite.JDBC}
+  jpa:
+    database-platform: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.community.dialect.SQLiteDialect}
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: true
+    open-in-view: false
+  sql:
+    init:
+      mode: never
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:8a21e9f73f344f6fab18207b15f286ce8a21e9f73f344f6fab18207b15f286ce}
+    expiration-minutes: ${APP_JWT_EXPIRATION_MINUTES:120}
+  cars:
+    service-url: ${APP_CARS_SERVICE_URL:http://localhost:8080}

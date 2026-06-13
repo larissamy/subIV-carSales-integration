@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vehicle-sales-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vehicle-sales-service
+  template:
+    metadata:
+      labels:
+        app: vehicle-sales-service
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: vehicle-sales-service
+          image: larissay/subiv-carsales-integration:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: vehicle-sales-config
+            - secretRef:
+                name: vehicle-sales-secret
+          volumeMounts:
+            - name: sales-service-data
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /swagger-ui/index.html
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /swagger-ui/index.html
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+      volumes:
+        - name: sales-service-data
+          emptyDir: {}

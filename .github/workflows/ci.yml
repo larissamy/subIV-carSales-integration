@@ -1,0 +1,64 @@
+name: CI/CD
+
+on:
+  pull_request:
+    branches: [ "main", "develop" ]
+  push:
+    branches: [ "main", "develop" ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build, test and coverage
+        run: mvn clean verify
+
+      - name: Upload JaCoCo report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-report
+          path: target/site/jacoco
+
+  validate-k8s:
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate Kubernetes manifests
+        uses: azure/setup-kubectl@v4
+      - name: Dry run manifests
+        run: kubectl apply --dry-run=client --validate=false -f k8s/
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: validate-k8s
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t larissay/subiv-carsales-integration:latest .
+
+  deploy-reference:
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Show deploy commands
+        run: |
+          echo "kubectl apply -f k8s/"
+          echo "kubectl set image deployment/<deployment-name> <container-name>=larissay/subiv-carsales-integration:latest"

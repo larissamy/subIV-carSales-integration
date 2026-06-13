@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  vehicle-sales-service:
+    build: .
+    container_name: subiv-vehicle-sales-service
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:sqlite:/data/sales-service.db
+      APP_CARS_SERVICE_URL: http://host.docker.internal:8080
+      APP_JWT_SECRET: 8a21e9f73f344f6fab18207b15f286ce8a21e9f73f344f6fab18207b15f286ce
+      APP_JWT_EXPIRATION_MINUTES: 120
+    volumes:
+      - sales-service-data:/data
+
+volumes:
+  sales-service-data:
