@@ -19,6 +19,10 @@ public class RegisterBuyerRequest {
     private String email;
 
     @NotBlank
+    @Pattern(regexp = "^\\d{11}$", message = "cpf must contain exactly 11 digits")
+    private String cpf;
+
+    @NotBlank
     @Size(min = 8, max = 64)
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).+$",
             message = "password must contain at least one letter and one number")
@@ -38,6 +42,14 @@ public class RegisterBuyerRequest {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getCpf() {
+        return cpf;
+    }
+
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
     }
 
     public String getPassword() {

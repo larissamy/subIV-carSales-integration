@@ -9,6 +9,7 @@ import java.util.UUID;
 public interface BuyerRepository {
     Buyer save(Buyer buyer);
     Optional<Buyer> findByEmail(String email);
+    Optional<Buyer> findByCpf(String cpf);
     Optional<Buyer> findById(UUID id);
     List<Buyer> findAll();
 }

@@ -30,6 +30,7 @@ class AuthControllerTest {
                 {
                   "name": "Larissa Test",
                   "email": "larissa.test@example.com",
+                  "cpf": "12345678901",
                   "password": "Senha123"
                 }
                 """;
@@ -38,7 +39,8 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(registerPayload))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.email").value("larissa.test@example.com"));
+                .andExpect(jsonPath("$.email").value("larissa.test@example.com"))
+                .andExpect(jsonPath("$.cpf").value("12345678901"));
 
         String loginPayload = """
                 {
@@ -62,6 +64,7 @@ class AuthControllerTest {
         mockMvc.perform(get("/auth/me")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("larissa.test@example.com"));
+                .andExpect(jsonPath("$.email").value("larissa.test@example.com"))
+                .andExpect(jsonPath("$.cpf").value("12345678901"));
     }
 }

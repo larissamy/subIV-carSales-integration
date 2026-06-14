@@ -24,6 +24,9 @@ public class Buyer {
     @Column(nullable = false, unique = true, length = 160)
     private String email;
 
+    @Column(nullable = false, unique = true, length = 11)
+    private String cpf;
+
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
@@ -42,12 +45,14 @@ public class Buyer {
         createdAt = now;
         updatedAt = now;
         email = email == null ? null : email.trim().toLowerCase();
+        cpf = cpf == null ? null : cpf.replaceAll("\\D", "");
     }
 
     @PreUpdate
     public void preUpdate() {
         updatedAt = OffsetDateTime.now();
         email = email == null ? null : email.trim().toLowerCase();
+        cpf = cpf == null ? null : cpf.replaceAll("\\D", "");
     }
 
     public UUID getId() {
@@ -72,6 +77,14 @@ public class Buyer {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getCpf() {
+        return cpf;
+    }
+
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
     }
 
     public String getPasswordHash() {

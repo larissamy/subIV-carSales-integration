@@ -36,9 +36,15 @@ public class AuthService {
                     throw new BusinessException("buyer with this email already exists");
                 });
 
+        buyerRepository.findByCpf(request.getCpf().replaceAll("\\D", ""))
+                .ifPresent(existing -> {
+                    throw new BusinessException("buyer with this cpf already exists");
+                });
+
         Buyer buyer = new Buyer();
         buyer.setName(request.getName().trim());
         buyer.setEmail(request.getEmail().trim().toLowerCase());
+        buyer.setCpf(request.getCpf().replaceAll("\\D", ""));
         buyer.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
         return BuyerMapper.toResponse(buyerRepository.save(buyer));

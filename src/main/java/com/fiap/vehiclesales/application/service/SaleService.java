@@ -6,6 +6,8 @@ import com.fiap.vehiclesales.application.dto.response.SaleResponse;
 import com.fiap.vehiclesales.domain.entity.Payment;
 import com.fiap.vehiclesales.domain.entity.Sale;
 import com.fiap.vehiclesales.domain.exception.BusinessException;
+import com.fiap.vehiclesales.domain.exception.NotFoundException;
+import com.fiap.vehiclesales.domain.repository.BuyerRepository;
 import com.fiap.vehiclesales.domain.repository.PaymentRepository;
 import com.fiap.vehiclesales.domain.repository.SaleRepository;
 import com.fiap.vehiclesales.infrastructure.client.CarServiceClient;
@@ -20,13 +22,16 @@ public class SaleService {
     private final CarServiceClient carServiceClient;
     private final SaleRepository saleRepository;
     private final PaymentRepository paymentRepository;
+    private final BuyerRepository buyerRepository;
 
     public SaleService(CarServiceClient carServiceClient,
                        SaleRepository saleRepository,
-                       PaymentRepository paymentRepository) {
+                       PaymentRepository paymentRepository,
+                       BuyerRepository buyerRepository) {
         this.carServiceClient = carServiceClient;
         this.saleRepository = saleRepository;
         this.paymentRepository = paymentRepository;
+        this.buyerRepository = buyerRepository;
     }
 
     public List<CarResponse> getAvailableCars() {
@@ -38,7 +43,10 @@ public class SaleService {
     }
 
     @Transactional
-    public SaleResponse purchase(PurchaseRequest request) {
+    public SaleResponse purchase(PurchaseRequest request, String buyerEmail) {
+        var buyer = buyerRepository.findByEmail(buyerEmail.trim().toLowerCase())
+                .orElseThrow(() -> new NotFoundException("buyer not found"));
+
         var car = carServiceClient.getCarById(request.carId());
         if (!"AVAILABLE".equals(car.status())) {
             throw new BusinessException("O carro " + car.licensePlate() + " não está disponível para venda. Status atual: " + car.status());
@@ -49,7 +57,7 @@ public class SaleService {
         var payment = Payment.create(car.price());
         var sale = Sale.create(
                 car.id(),
-                request.buyerCpf(),
+                buyer.getCpf(),
                 car.price(),
                 request.saleDate()
         );

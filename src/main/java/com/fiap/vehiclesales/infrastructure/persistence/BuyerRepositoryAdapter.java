@@ -28,6 +28,11 @@ public class BuyerRepositoryAdapter implements BuyerRepository {
     }
 
     @Override
+    public Optional<Buyer> findByCpf(String cpf) {
+        return repository.findByCpf(cpf);
+    }
+
+    @Override
     public Optional<Buyer> findById(UUID id) {
         return repository.findById(id);
     }
