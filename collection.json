@@ -1,0 +1,107 @@
+{
+  "info": {
+    "name": "subIV-carSales-integration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register buyer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8081/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\":\"Larissa Test\",\n  \"email\":\"larissa.test@example.com\",\n  \"cpf\":\"12345678901\",\n  \"password\":\"Senha123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Login buyer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8081/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\":\"larissa.test@example.com\",\n  \"password\":\"Senha123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Current buyer",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:8081/auth/me"
+      }
+    },
+    {
+      "name": "List available cars",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8081/api/sales/cars/available"
+      }
+    },
+    {
+      "name": "Purchase car",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:8081/api/sales/purchase",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"carId\":\"{{carId}}\",\n  \"saleDate\":\"2026-06-12T10:00:00Z\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Confirm payment webhook",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8081/api/webhooks/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"paymentCode\":\"{{paymentCode}}\",\n  \"status\":1\n}"
+        }
+      }
+    },
+    {
+      "name": "List sold cars",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8081/api/sales/cars/sold"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:file:sales-service-test?mode=memory&cache=shared
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+app:
+  jwt:
+    secret: 8a21e9f73f344f6fab18207b15f286ce8a21e9f73f344f6fab18207b15f286ce
+    expiration-minutes: 120
+  cars:
+    service-url: http://localhost:8080
