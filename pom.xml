@@ -101,12 +101,25 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
+
+                <configuration>
+                    <excludes>
+                        <exclude>**/*Application*</exclude>
+                        <exclude>**/infrastructure/**</exclude>
+                        <exclude>**/presentation/**</exclude>
+                        <exclude>**/application/dto/**</exclude>
+                        <exclude>**/application/mapper/**</exclude>
+                        <exclude>**/domain/exception/**</exclude>
+                    </excludes>
+                </configuration>
+
                 <executions>
                     <execution>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
+
                     <execution>
                         <id>report</id>
                         <phase>verify</phase>
@@ -114,6 +127,7 @@
                             <goal>report</goal>
                         </goals>
                     </execution>
+
                     <execution>
                         <id>check</id>
                         <phase>verify</phase>
@@ -133,14 +147,6 @@
                                     </limits>
                                 </rule>
                             </rules>
-                            <excludes>
-                                <exclude>**/*Application*</exclude>
-                                <exclude>**/infrastructure/**</exclude>
-                                <exclude>**/presentation/**</exclude>
-                                <exclude>**/application/dto/**</exclude>
-                                <exclude>**/application/mapper/**</exclude>
-                                <exclude>**/domain/exception/**</exclude>
-                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
