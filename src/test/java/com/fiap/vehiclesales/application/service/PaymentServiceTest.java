@@ -77,6 +77,45 @@ class PaymentServiceTest {
         verify(carServiceClient, never()).makeCarAvailable(any());
     }
 
+
+    @Test
+    void shouldReturnPaymentByPaymentCode() {
+        var payment = Payment.create(BigDecimal.valueOf(100000));
+        when(paymentRepository.getByPaymentCode(payment.getPaymentCode())).thenReturn(Optional.of(payment));
+
+        var response = service.getPaymentByPaymentCode(payment.getPaymentCode());
+
+        assertTrue(response.isPresent());
+        assertEquals(payment.getId(), response.get().id());
+        assertEquals(payment.getAmount(), response.get().amount());
+        assertEquals(payment.getPaymentCode(), response.get().paymentCode());
+        assertEquals("PENDING", response.get().paymentStatus());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenPaymentCodeDoesNotExist() {
+        when(paymentRepository.getByPaymentCode("404-ABC")).thenReturn(Optional.empty());
+
+        var response = service.getPaymentByPaymentCode("404-ABC");
+
+        assertTrue(response.isEmpty());
+    }
+
+    @Test
+    void shouldThrowWhenWebhookStatusIsNull() {
+        assertThrows(IllegalArgumentException.class, () -> service.confirm(new PaymentWebhookRequest("123-ABC", null)));
+    }
+
+    @Test
+    void shouldThrowWhenSaleDoesNotExistForPayment() {
+        var payment = Payment.create(BigDecimal.valueOf(100000));
+        when(paymentRepository.getByPaymentCode(payment.getPaymentCode())).thenReturn(Optional.of(payment));
+        when(saleRepository.getByPaymentId(payment.getId())).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> service.confirm(new PaymentWebhookRequest(payment.getPaymentCode(), 1)));
+        verify(paymentRepository).update(payment);
+    }
+
     @Test
     void shouldThrowWhenPaymentDoesNotExist() {
         when(paymentRepository.getByPaymentCode("404-ABC")).thenReturn(Optional.empty());
