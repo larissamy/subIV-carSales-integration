@@ -32,18 +32,25 @@ spec:
           volumeMounts:
             - name: sales-service-data
               mountPath: /data
+          startupProbe:
+            tcpSocket:
+              port: 8080
+            failureThreshold: 30
+            periodSeconds: 5
+
           readinessProbe:
-            httpGet:
-              path: /swagger-ui/index.html
-              port: 8081
-            initialDelaySeconds: 10
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 20
             periodSeconds: 10
+            failureThreshold: 12
+
           livenessProbe:
-            httpGet:
-              path: /swagger-ui/index.html
-              port: 8081
-            initialDelaySeconds: 30
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 60
             periodSeconds: 20
+            failureThreshold: 6
           resources:
             requests:
               cpu: "100m"
