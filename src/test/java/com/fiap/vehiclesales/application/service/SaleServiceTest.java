@@ -94,6 +94,51 @@ class SaleServiceTest {
         verify(carServiceClient, never()).reserveCar(any());
     }
 
+
+    @Test
+    void shouldFindAuthenticatedBuyerUsingTrimmedLowerCaseEmail() {
+        var car = car("AVAILABLE");
+        var buyer = buyer();
+        var request = new PurchaseRequest(car.id(), Instant.now());
+
+        when(buyerRepository.findByEmail("larissa.test@example.com")).thenReturn(Optional.of(buyer));
+        when(carServiceClient.getCarById(car.id())).thenReturn(car);
+
+        var response = service.purchase(request, " LARISSA.TEST@EXAMPLE.COM ");
+
+        assertEquals("12345678901", response.buyerCpf());
+        verify(buyerRepository).findByEmail("larissa.test@example.com");
+    }
+
+    @Test
+    void shouldThrowWhenAuthenticatedBuyerDoesNotExist() {
+        var car = car("AVAILABLE");
+        var request = new PurchaseRequest(car.id(), Instant.now());
+
+        when(buyerRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+
+        assertThrows(com.fiap.vehiclesales.domain.exception.NotFoundException.class,
+                () -> service.purchase(request, "missing@example.com"));
+        verify(carServiceClient, never()).getCarById(any());
+        verify(carServiceClient, never()).reserveCar(any());
+        verify(paymentRepository, never()).add(any());
+        verify(saleRepository, never()).add(any());
+    }
+
+    @Test
+    void shouldNotPersistPaymentOrSaleWhenCarIsUnavailable() {
+        var car = car("SOLD");
+        var buyer = buyer();
+        var request = new PurchaseRequest(car.id(), Instant.now());
+
+        when(buyerRepository.findByEmail(buyer.getEmail())).thenReturn(Optional.of(buyer));
+        when(carServiceClient.getCarById(car.id())).thenReturn(car);
+
+        assertThrows(BusinessException.class, () -> service.purchase(request, buyer.getEmail()));
+        verify(paymentRepository, never()).add(any());
+        verify(saleRepository, never()).add(any());
+    }
+
     private Buyer buyer() {
         Buyer buyer = new Buyer();
         buyer.setName("Larissa Test");
