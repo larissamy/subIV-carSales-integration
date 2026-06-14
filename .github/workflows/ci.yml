@@ -116,7 +116,7 @@ jobs:
         run: kubectl set image deployment/vehicle-sales-service vehicle-sales-service=${{ env.IMAGE_NAME }}:${{ github.sha }}
 
       - name: Wait for rollout
-        run: kubectl rollout status deployment/vehicle-sales-service --timeout=120s
+        run: kubectl rollout status deployment/vehicle-sales-service --timeout=180s
 
   deploy-kubernetes:
     runs-on: ubuntu-latest
