@@ -34,20 +34,20 @@ spec:
               mountPath: /data
           startupProbe:
             tcpSocket:
-              port: 8080
+              port: 8081
             failureThreshold: 30
             periodSeconds: 5
 
           readinessProbe:
             tcpSocket:
-              port: 8080
+              port: 8081
             initialDelaySeconds: 20
             periodSeconds: 10
             failureThreshold: 12
 
           livenessProbe:
             tcpSocket:
-              port: 8080
+              port: 8081
             initialDelaySeconds: 60
             periodSeconds: 20
             failureThreshold: 6
