@@ -5,6 +5,11 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:sqlite:sales-service.db}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.sqlite.JDBC}
+    hikari:
+      maximum-pool-size: 1
+      minimum-idle: 1
+      idle-timeout: 0
+      max-lifetime: 0
   jpa:
     database-platform: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.community.dialect.SQLiteDialect}
     hibernate:

@@ -16,7 +16,7 @@ Este repositório isola os endpoints de listagem, compra e webhook de pagamento 
 
 O serviço mantém os endpoints de autenticação/compradores herdados da Fase 3 como apoio, mas o fluxo da Fase 4 usa CPF no payload da compra.
 
-## Banco de dados
+## Banco de dados e persistência real
 
 Por padrão, o serviço usa SQLite em arquivo:
 
@@ -24,7 +24,19 @@ Por padrão, o serviço usa SQLite em arquivo:
 jdbc:sqlite:sales-service.db
 ```
 
-No Docker/Kubernetes, o arquivo fica em `/data/sales-service.db`.
+No Docker e no Kubernetes, o arquivo fica em:
+
+```text
+/data/sales-service.db
+```
+
+A persistência foi configurada para não depender de banco em memória:
+
+- execução local: arquivo `sales-service.db`;
+- Docker Compose: volume nomeado `sales-service-data`;
+- Kubernetes: `PersistentVolume` + `PersistentVolumeClaim` em `k8s/pvc.yaml`.
+
+Isso mantém vendas e pagamentos mesmo após reiniciar container/pod.
 
 ## Comunicação HTTP
 
@@ -109,7 +121,7 @@ http://localhost:8081/swagger-ui/index.html
 
 ```bash
 docker build -t subiv-carsales-integration:local .
-docker run -p 8081:8081   -e APP_CARS_SERVICE_URL=http://host.docker.internal:8080   subiv-carsales-integration:local
+docker run -p 8081:8081   -v sales-service-data:/data   -e APP_CARS_SERVICE_URL=http://host.docker.internal:8080   subiv-carsales-integration:local
 ```
 
 Ou:
@@ -137,8 +149,17 @@ A regra de cobertura está configurada para mínimo de 80%.
 ```bash
 kubectl apply -f k8s/
 kubectl get pods
+kubectl get pvc
 kubectl port-forward svc/vehicle-sales-service 8081:80
 ```
+
+Os manifests incluem:
+
+- `deployment.yaml`;
+- `service.yaml`;
+- `configmap.yaml`;
+- `secret.yaml`;
+- `pvc.yaml` com `PersistentVolume` e `PersistentVolumeClaim`.
 
 ## Fluxo ponta-a-ponta sugerido para o vídeo
 
@@ -152,7 +173,42 @@ kubectl port-forward svc/vehicle-sales-service 8081:80
 8. Listar veículos vendidos pelo `subIV-carSales-integration`.
 9. Mostrar os testes rodando com `mvn clean verify`.
 10. Mostrar relatório de cobertura JaCoCo.
+11. Mostrar Actions com build, push Docker e deploy smoke test passando.
 
 ## CI/CD
 
-O workflow em `.github/workflows/ci.yml` executa build, testes, cobertura, validação de Kubernetes e etapa de deploy após merge na branch principal.
+O workflow `.github/workflows/ci.yml` executa:
+
+1. build, testes e cobertura com `mvn clean verify`;
+2. validação dos manifests Kubernetes com `kind`;
+3. build da imagem Docker em Pull Requests;
+4. build e push da imagem Docker em merges/pushes para `main` ou `develop`;
+5. deploy smoke test em Kubernetes local temporário com `kind`;
+6. deploy opcional para cluster real quando a variável `ENABLE_REAL_K8S_DEPLOY=true` estiver configurada.
+
+### Secrets necessários para push no Docker Hub
+
+Configure no GitHub em `Settings > Secrets and variables > Actions`:
+
+```text
+DOCKERHUB_USERNAME
+DOCKERHUB_TOKEN
+```
+
+A imagem publicada usa o nome:
+
+```text
+larissay/subiv-carsales-integration:latest
+larissay/subiv-carsales-integration:<github-sha>
+```
+
+### Deploy em cluster real
+
+Para habilitar o deploy real, configure:
+
+```text
+Repository variable: ENABLE_REAL_K8S_DEPLOY=true
+Repository secret: KUBE_CONFIG=<kubeconfig em base64>
+```
+
+Sem essa variável, o workflow ainda executa o deploy smoke test usando `kind`, que serve como evidência de deploy efetivo na esteira.
