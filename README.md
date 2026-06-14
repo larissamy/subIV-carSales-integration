@@ -8,13 +8,13 @@ Este repositório isola os endpoints de listagem, compra e webhook de pagamento 
 
 - Listar veículos à venda ordenados por preço, do mais barato para o mais caro.
 - Listar veículos vendidos ordenados por preço, do mais barato para o mais caro.
-- Efetuar a venda de um veículo usando CPF da pessoa compradora e data da venda.
+- Efetuar a venda de um veículo usando a pessoa compradora autenticada e a data da venda.
 - Gerar pagamento pendente com código de pagamento.
 - Receber webhook da entidade processadora de pagamento.
 - Confirmar ou cancelar a venda, atualizando o status do veículo no serviço principal via HTTP.
 - Persistir vendas e pagamentos em banco próprio.
 
-O serviço mantém os endpoints de autenticação/compradores herdados da Fase 3 como apoio, mas o fluxo da Fase 4 usa CPF no payload da compra.
+O serviço mantém cadastro/login de compradores como apoio ao fluxo da Fase 4. O CPF fica no cadastro do comprador e a compra usa os dados do comprador autenticado.
 
 ## Banco de dados e persistência real
 
@@ -62,12 +62,32 @@ POST /api/webhooks/payments
 GET /api/payments/{paymentCode}
 ```
 
+### Cadastro e login do comprador
+
+```json
+{
+  "name": "Larissa Test",
+  "email": "larissa.test@example.com",
+  "cpf": "12345678901",
+  "password": "Senha123"
+}
+```
+
+Depois do login, copie o token retornado. No Swagger, clique em **Authorize** e cole apenas o valor do token.
+
+Em Postman/cURL, envie o header completo:
+
+```text
+Authorization: Bearer SEU_TOKEN_AQUI
+```
+
 ### Comprar veículo
+
+A compra exige autenticação via Bearer Token. O CPF usado na venda vem do comprador logado.
 
 ```json
 {
   "carId": "uuid-do-veiculo",
-  "buyerCpf": "12345678901",
   "saleDate": "2026-06-12T10:00:00Z"
 }
 ```

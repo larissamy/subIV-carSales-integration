@@ -13,6 +13,7 @@ public final class BuyerMapper {
                 buyer.getId(),
                 buyer.getName(),
                 buyer.getEmail(),
+                buyer.getCpf(),
                 buyer.getCreatedAt(),
                 buyer.getUpdatedAt()
         );

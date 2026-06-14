@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface SpringDataBuyerRepository extends JpaRepository<Buyer, UUID> {
     Optional<Buyer> findByEmail(String email);
+    Optional<Buyer> findByCpf(String cpf);
 }

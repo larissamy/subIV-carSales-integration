@@ -6,7 +6,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 
@@ -35,8 +40,8 @@ public class SalesController {
 
     @Operation(summary = "Purchase a vehicle and generate a pending payment")
     @PostMapping("/purchase")
-    public ResponseEntity<?> purchase(@Valid @RequestBody PurchaseRequest request) {
-        var response = service.purchase(request);
+    public ResponseEntity<?> purchase(@Valid @RequestBody PurchaseRequest request, Authentication authentication) {
+        var response = service.purchase(request, authentication.getName());
         return ResponseEntity.created(URI.create("/api/payments/" + response.paymentCode())).body(response);
     }
 }

@@ -2,9 +2,11 @@ package com.fiap.vehiclesales.application.service;
 
 import com.fiap.vehiclesales.application.dto.request.PurchaseRequest;
 import com.fiap.vehiclesales.application.dto.response.CarResponse;
+import com.fiap.vehiclesales.domain.entity.Buyer;
 import com.fiap.vehiclesales.domain.entity.Payment;
 import com.fiap.vehiclesales.domain.entity.Sale;
 import com.fiap.vehiclesales.domain.exception.BusinessException;
+import com.fiap.vehiclesales.domain.repository.BuyerRepository;
 import com.fiap.vehiclesales.domain.repository.PaymentRepository;
 import com.fiap.vehiclesales.domain.repository.SaleRepository;
 import com.fiap.vehiclesales.infrastructure.client.CarServiceClient;
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,6 +27,7 @@ class SaleServiceTest {
     private CarServiceClient carServiceClient;
     private SaleRepository saleRepository;
     private PaymentRepository paymentRepository;
+    private BuyerRepository buyerRepository;
     private SaleService service;
 
     @BeforeEach
@@ -31,7 +35,8 @@ class SaleServiceTest {
         carServiceClient = mock(CarServiceClient.class);
         saleRepository = mock(SaleRepository.class);
         paymentRepository = mock(PaymentRepository.class);
-        service = new SaleService(carServiceClient, saleRepository, paymentRepository);
+        buyerRepository = mock(BuyerRepository.class);
+        service = new SaleService(carServiceClient, saleRepository, paymentRepository, buyerRepository);
     }
 
     @Test
@@ -57,12 +62,15 @@ class SaleServiceTest {
     }
 
     @Test
-    void shouldPurchaseAvailableCar() {
+    void shouldPurchaseAvailableCarUsingAuthenticatedBuyerCpf() {
         var car = car("AVAILABLE");
-        var request = new PurchaseRequest(car.id(), "12345678901", Instant.now());
+        var buyer = buyer();
+        var request = new PurchaseRequest(car.id(), Instant.now());
+
+        when(buyerRepository.findByEmail(buyer.getEmail())).thenReturn(Optional.of(buyer));
         when(carServiceClient.getCarById(car.id())).thenReturn(car);
 
-        var response = service.purchase(request);
+        var response = service.purchase(request, buyer.getEmail());
 
         assertEquals(car.id(), response.carId());
         assertEquals("12345678901", response.buyerCpf());
@@ -76,11 +84,24 @@ class SaleServiceTest {
     @Test
     void shouldNotPurchaseUnavailableCar() {
         var car = car("RESERVED");
-        var request = new PurchaseRequest(car.id(), "12345678901", Instant.now());
+        var buyer = buyer();
+        var request = new PurchaseRequest(car.id(), Instant.now());
+
+        when(buyerRepository.findByEmail(buyer.getEmail())).thenReturn(Optional.of(buyer));
         when(carServiceClient.getCarById(car.id())).thenReturn(car);
 
-        assertThrows(BusinessException.class, () -> service.purchase(request));
+        assertThrows(BusinessException.class, () -> service.purchase(request, buyer.getEmail()));
         verify(carServiceClient, never()).reserveCar(any());
+    }
+
+    private Buyer buyer() {
+        Buyer buyer = new Buyer();
+        buyer.setName("Larissa Test");
+        buyer.setEmail("larissa.test@example.com");
+        buyer.setCpf("12345678901");
+        buyer.setPasswordHash("hash");
+        buyer.prePersist();
+        return buyer;
     }
 
     private CarResponse car(String status) {
